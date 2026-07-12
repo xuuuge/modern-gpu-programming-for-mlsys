@@ -527,8 +527,13 @@ function drawPhysical(hovKeys) {
     // 2D table: rows = yAxis values, cols = xAxis values.
     const table = mk('div', 'phys-table' + (ST.swizzle ? ' bank-mode' : ''));
     // In bank mode a cell is one 4-byte bank word holding elemsPerBank elements
-    // laid out horizontally; otherwise a fixed 54px cell.
-    const colW = ST.swizzle ? (ST.elemsPerBank * 48 + 8) : 54;
+    // laid out horizontally; otherwise a fixed 54px cell. If a word is
+    // over-subscribed (layout doesn't spread @m), widen the column so the
+    // wrapped slots form a roughly square block instead of a tall strip.
+    const perRow = ST.swizzle
+      ? Math.max(ST.elemsPerBank, Math.min(8, Math.ceil(Math.sqrt(ST.maxPerCell))))
+      : 1;
+    const colW = ST.swizzle ? (perRow * 48 + 8) : 54;
     table.style.gridTemplateColumns = '44px repeat(' + ST.xVals.length + ', ' + colW + 'px)';
     table.appendChild(corner());
     for (const x of ST.xVals) table.appendChild(axHdr(String(x), false, `${ST.xAxis}=${x}`));
